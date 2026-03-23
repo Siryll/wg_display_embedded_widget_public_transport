@@ -146,7 +146,7 @@ impl MyWidget {
         let mut content = format!("{} -> {}", data.from.name, data.to.name);
 
         if data.connections.is_empty() {
-            content += "- No departures";
+            content += "\nNo departures";
             return content;
         }
 
@@ -159,7 +159,7 @@ impl MyWidget {
         for connection in connections {
             let departure = connection.from.departure;
             content += &format!(
-                "- {} ({})",
+                "\n{} ({})",
                 MyWidget::format_departure_offset(departure),
                 MyWidget::format_departure_time(departure)
             )
