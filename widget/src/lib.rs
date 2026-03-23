@@ -111,7 +111,7 @@ impl MyWidget {
 
     pub fn fetch_connection(connection: &Connection) -> Result<String, WidgetResult> {
         let url = format!(
-                "http://transport.opendata.ch/v1/connections?from={}&to={}&limit=16",
+                "http://transport.opendata.ch/v1/connections?from={}&to={}&limit=3",
                 urlencoding::encode(connection.from_station.as_str()),
                 urlencoding::encode(connection.to_station.as_str()),
             );
