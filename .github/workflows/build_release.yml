@@ -9,7 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   MAX_PRECOMPILED_SIZE_BYTES: "500000"
-  USE_WASM_OPT: "1"
+  USE_WASM_OPT: "0"
 
 jobs:
   build:
