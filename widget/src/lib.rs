@@ -7,6 +7,7 @@ use time::OffsetDateTime;
 use time_humanize::Accuracy;
 use time_humanize::HumanTime;
 use time_humanize::Tense;
+use schemars::generate::SchemaSettings;
 
 use widget::widget::{clocks, http};
 
@@ -60,7 +61,7 @@ const WIDGET_NAME: &str = "Public Transport";
 struct MyWidget;
 
 impl Guest for MyWidget {
-    fn get_name() -> wit_bindgen::rt::string::String {
+    fn get_name() -> String {
         WIDGET_NAME.into()
     }
 
@@ -87,14 +88,14 @@ impl Guest for MyWidget {
         WidgetResult { data: text_buffer }
     }
 
-    fn get_config_schema() -> wit_bindgen::rt::string::String {
-        let mut settings = schemars::gen::SchemaSettings::default();
+    fn get_config_schema() -> String {
+        let mut settings = SchemaSettings::default();
         settings.inline_subschemas = true;
         let schema = settings.into_generator().into_root_schema_for::<WidgetConfig>();
         serde_json::to_string_pretty(&schema).unwrap()
     }
 
-    fn get_version() -> wit_bindgen::rt::string::String {
+    fn get_version() -> String {
         "1.0.0".into()
     }
 
