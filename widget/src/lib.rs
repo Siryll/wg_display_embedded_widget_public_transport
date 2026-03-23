@@ -2,11 +2,8 @@ use serde_json::Error;
 
 use schemars::JsonSchema;
 use serde::Deserialize;
-use time::format_description;
+use time::Duration;
 use time::OffsetDateTime;
-use time_humanize::Accuracy;
-use time_humanize::HumanTime;
-use time_humanize::Tense;
 use schemars::generate::SchemaSettings;
 
 use widget::widget::{clocks, http};
@@ -75,15 +72,17 @@ impl Guest for MyWidget {
         let config: WidgetConfig =
             serde_json::from_str(&context.config).expect("Failed to parse config");
 
-        let text_buffer = config.connections.iter()
-            .map(|connection| {
-                match MyWidget::fetch_connection(connection) {
-                    Ok(content) => content,
-                    Err(error) => error.data
-                }
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
+        let mut text_buffer = String::new();
+        for (index, connection) in config.connections.iter().enumerate() {
+            if index > 0 {
+                text_buffer.push('\n');
+            }
+
+            match MyWidget::fetch_connection(connection) {
+                Ok(content) => text_buffer.push_str(content.as_str()),
+                Err(error) => text_buffer.push_str(error.data.as_str()),
+            }
+        }
 
         WidgetResult { data: text_buffer }
     }
@@ -132,9 +131,9 @@ impl MyWidget {
 
             let data: Result<PublicTransportData, Error> =
                 serde_json::from_slice(response.bytes.as_slice());
-            if let Err(error) = data {
+            if data.is_err() {
                 return Err(WidgetResult {
-                    data: format!("Failed to parse response: {:?}", error),
+                    data: "Failed to parse response".into(),
                 });
             };
             let data = data.unwrap();
@@ -169,16 +168,29 @@ impl MyWidget {
     }
 
     pub fn format_departure_time(departure: OffsetDateTime) -> String {
-        let format = format_description::parse("[hour]:[minute]").unwrap();
-        match departure.format(&format) {
-            Ok(departure) => departure,
-            Err(_) => "Could not format departure".to_string(),
-        }
+        format!("{:02}:{:02}", departure.hour(), departure.minute())
     }
 
     pub fn format_departure_offset(departure: OffsetDateTime) -> String {
         let departure_offset = departure - MyWidget::now();
-        HumanTime::from(departure_offset.unsigned_abs()).to_text_en(Accuracy::Rough, Tense::Future)
+        MyWidget::format_compact_duration(departure_offset)
+    }
+
+    pub fn format_compact_duration(duration: Duration) -> String {
+        let seconds = duration.whole_seconds();
+        if seconds <= 0 {
+            return "now".to_string();
+        }
+
+        if seconds < 60 {
+            return format!("{}s", seconds);
+        }
+
+        if seconds < 3600 {
+            return format!("{}m", seconds / 60);
+        }
+
+        format!("{}h", seconds / 3600)
     }
 }
 
